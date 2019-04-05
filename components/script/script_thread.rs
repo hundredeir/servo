@@ -1248,9 +1248,9 @@ impl ScriptThread {
                             {
                                 MutableOrigin::new(new_layout_info.load_data.url.origin())
                             } else if let Some(parent) =
-                                new_layout_info.parent_info.and_then(|pipeline_id| {
-                                    self.documents.borrow().find_document(pipeline_id)
-                                })
+                            new_layout_info.parent_info.and_then(|pipeline_id| {
+                                self.documents.borrow().find_document(pipeline_id)
+                            })
                             {
                                 parent.origin().clone()
                             } else if let Some(creator) = new_layout_info
@@ -1537,8 +1537,8 @@ impl ScriptThread {
         pipeline_id: Option<PipelineId>,
         f: F,
     ) -> R
-    where
-        F: FnOnce() -> R,
+        where
+            F: FnOnce() -> R,
     {
         self.notify_activity_to_hang_monitor(&category);
         let start = precise_time_ns();
@@ -1818,10 +1818,10 @@ impl ScriptThread {
             },
             DevtoolScriptControlMsg::WantsLiveNotifications(id, to_send) => match documents
                 .find_window(id)
-            {
-                Some(window) => devtools::handle_wants_live_notifications(window.upcast(), to_send),
-                None => return warn!("Message sent to closed pipeline {}.", id),
-            },
+                {
+                    Some(window) => devtools::handle_wants_live_notifications(window.upcast(), to_send),
+                    None => return warn!("Message sent to closed pipeline {}.", id),
+                },
             DevtoolScriptControlMsg::SetTimelineMarkers(id, marker_types, reply) => {
                 devtools::handle_set_timeline_markers(&*documents, id, marker_types, reply)
             },
@@ -1869,6 +1869,15 @@ impl ScriptThread {
             },
             WebDriverScriptCommand::FindElementElementCSS(selector, element_id, reply) => {
                 webdriver_handlers::handle_find_element_element_css(
+                    &*documents,
+                    pipeline_id,
+                    element_id,
+                    selector,
+                    reply,
+                )
+            },
+            WebDriverScriptCommand::FindElementElementsCSS(selector, element_id, reply) => {
+                webdriver_handlers::handle_find_element_elements_css(
                     &*documents,
                     pipeline_id,
                     element_id,

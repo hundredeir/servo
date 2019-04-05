@@ -95,7 +95,7 @@ pub fn start_server(port: u16, constellation_chan: Sender<ConstellationMsg>) {
             let address = SocketAddrV4::new("0.0.0.0".parse().unwrap(), port);
             match server::start(SocketAddr::V4(address), handler, &extension_routes()) {
                 Ok(listening) => info!("WebDriver server listening on {}", listening.socket),
-                Err(_) => panic!("Unable to start WebDriver HTTPD server"),
+                Err(_) => panic!("Unable to start WebDriver HTTPD server"), //show return Err description to get know better.
             }
         })
         .expect("Thread spawning failed");
@@ -803,6 +803,36 @@ impl Handler {
         }
     }
 
+    fn handle_find_element_elements(&self,
+                                    element: &WebElement, parameters: &LocatorParameters
+                                    ) -> WebDriverResult<WebDriverResponse>{
+        if parameters.using != LocatorStrategy::CSSSelector {
+            return Err(WebDriverError::new(
+                ErrorStatus::UnsupportedOperation,
+                "Unsupported locator strategy"
+                ));
+            }
+
+            let (sender,receiver) = ipc::channel().unwrap();
+            let cmd = WebDriverScriptCommand::FindElementElementsCSS(
+                parameters.value.clone(),element.id.clone(),sender);
+
+            self.browsing_context_script_command(cmd)?;
+
+            match receiver.recv().unwrap(){
+                Ok(value) => {
+                    let value_resp = value.into_iter() //maybe into_iter is superfluous
+                        .map(|x| serde_json::to_value(WebElement::new(x)) .unwrap())
+                        .collect::<Vec<Value>>();
+                    let value_resp = serde_json::to_value(value_resp).unwrap();
+                    Ok(WebDriverResponse::Generic(ValueResponse(value_resp)))
+                },
+                Err(_) => Err(WebDriverError::new(
+                    ErrorStatus::InvalidSelector,"Invalid Selector",))
+            }
+
+        }
+
     // https://w3c.github.io/webdriver/webdriver-spec.html#get-element-rect
     fn handle_element_rect(&self, element: &WebElement) -> WebDriverResult<WebDriverResponse> {
         let (sender, receiver) = ipc::channel().unwrap();
@@ -1241,6 +1271,9 @@ impl WebDriverHandler<ServoExtensionRoute> for Handler {
             WebDriverCommand::FindElements(ref parameters) => self.handle_find_elements(parameters),
             WebDriverCommand::FindElementElement(ref element, ref parameters) => {
                 self.handle_find_element_element(element, parameters)
+            },
+            WebDriverCommand::FindElementElements(ref element,ref parameters) => {
+                self.handle_find_element_elements(element, parameters)
             },
             WebDriverCommand::GetNamedCookie(ref name) => self.handle_get_cookie(name),
             WebDriverCommand::GetCookies => self.handle_get_cookies(),
