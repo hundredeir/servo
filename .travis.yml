@@ -37,6 +37,7 @@ matrix:
          #- ./mach cargo check -p compositing --no-default-features
          - ./mach build -d --verbose -p servo
          - ./mach test-unit
+         - ./mach test-wpt
          - ./mach clean
          - bash etc/ci/lockfile_changed.sh
       cache:
