@@ -821,7 +821,7 @@ impl Handler {
 
             match receiver.recv().unwrap(){
                 Ok(value) => {
-                    let value_resp = value.into_iter() //maybe into_iter is superfluous
+                    let value_resp = value.into_iter()
                         .map(|x| serde_json::to_value(WebElement::new(x)) .unwrap())
                         .collect::<Vec<Value>>();
                     let value_resp = serde_json::to_value(value_resp).unwrap();
@@ -1303,7 +1303,7 @@ impl WebDriverHandler<ServoExtensionRoute> for Handler {
             },
             _ => Err(WebDriverError::new(
                 ErrorStatus::UnsupportedOperation,
-                "Command not implemented",
+                format!("Command not implemented: {:?}",msg.command),
             )),
         }
     }
