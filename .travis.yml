@@ -77,3 +77,4 @@ matrix:
 branches:
   only:
     - master
+    - FindElementElements
