@@ -35,8 +35,9 @@ matrix:
       script:
          # see https://github.com/servo/servo/issues/20664
          #- ./mach cargo check -p compositing --no-default-features
-         - ./mach build -d --verbose -p servo
+         - travis_wait 60 ./mach build -d --verbose -p servo
          - ./mach test-unit
+         - ./mach test-wpt tests/wpt/web-platform-tests/webdriver/tests/find_elements_from_element
          - ./mach clean
          - bash etc/ci/lockfile_changed.sh
       cache:
