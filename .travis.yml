@@ -78,3 +78,4 @@ matrix:
 branches:
   only:
     - master
+    - test_find_elem_elems
